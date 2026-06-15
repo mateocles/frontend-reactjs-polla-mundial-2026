@@ -9,4 +9,7 @@ export const AuthService = {
 
   updateProfile: (data) =>
     api.patch("/auth/profile", data).then((r) => r.data),
+
+  google: (idToken) =>
+    api.post("/auth/google", { idToken }).then((r) => r.data),
 };

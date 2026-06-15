@@ -35,6 +35,13 @@ export const useAuthStore = create((set) => ({
     return data;
   },
 
+  loginWithGoogle: async (idToken) => {
+    const data = await AuthService.google(idToken);
+    persistSession(data.token, data.user);
+    set({ token: data.token, user: data.user });
+    return data;
+  },
+
   updateProfile: async (data) => {
     const user = await AuthService.updateProfile(data);
     localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
-import { dialog } from "../store/useDialog";
+import GoogleAuthButton from "../components/GoogleAuthButton";
 
 function Field({ icon: Icon, secure, value, onChange, ...props }) {
   const [hidden, setHidden] = useState(secure);
@@ -84,13 +84,7 @@ export default function Login() {
           <div className="flex-1 h-px bg-outline-variant" />
         </div>
 
-        <button
-          type="button"
-          onClick={() => dialog.alert("El inicio con Google estará disponible pronto.", { title: "Próximamente" })}
-          className="w-full h-12 rounded-xl bg-surface-container-highest border border-outline-variant text-on-surface font-semibold flex items-center justify-center gap-3"
-        >
-          <span className="font-bold">G</span> Google
-        </button>
+        <GoogleAuthButton />
 
         <p className="text-center text-sm text-on-surface-variant mt-6">
           ¿No tienes una cuenta?{" "}

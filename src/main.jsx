@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import "./index.css";
 import { useAuthStore } from "./store/useAuthStore";
 import DialogHost from "./components/DialogHost";
@@ -22,10 +23,13 @@ function PublicOnly({ children }) {
   return token ? <Navigate to="/matches" replace /> : children;
 }
 
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <DialogHost />
-    <BrowserRouter>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <DialogHost />
+      <BrowserRouter>
       <Routes>
         <Route path="/login" element={<PublicOnly><Login /></PublicOnly>} />
         <Route path="/register" element={<PublicOnly><Register /></PublicOnly>} />
@@ -44,7 +48,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </Route>
 
         <Route path="*" element={<Navigate to="/matches" replace />} />
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+    </GoogleOAuthProvider>
   </React.StrictMode>
 );
