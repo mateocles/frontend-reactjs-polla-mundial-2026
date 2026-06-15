@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, User, Mail, Lock, Eye, EyeOff, UserPlus } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
-import GoogleAuthButton from "../components/GoogleAuthButton";
 
 function Field({ icon: Icon, label, secure, value, onChange, ...props }) {
   const [hidden, setHidden] = useState(secure);
@@ -83,13 +82,6 @@ export default function Register() {
         >
           {loading ? "Creando..." : "Registrarse"} <UserPlus size={18} />
         </button>
-
-        <div className="flex items-center my-5">
-          <div className="flex-1 h-px bg-outline-variant" />
-          <span className="px-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">o regístrate con</span>
-          <div className="flex-1 h-px bg-outline-variant" />
-        </div>
-        <GoogleAuthButton />
 
         <p className="text-center text-sm text-on-surface-variant mt-6">
           ¿Ya tienes una cuenta?{" "}

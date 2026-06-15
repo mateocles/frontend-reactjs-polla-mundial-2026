@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
-import GoogleAuthButton from "../components/GoogleAuthButton";
 
 function Field({ icon: Icon, secure, value, onChange, ...props }) {
   const [hidden, setHidden] = useState(secure);
@@ -77,14 +76,6 @@ export default function Login() {
         >
           {loading ? "Entrando..." : "Iniciar Sesión"}
         </button>
-
-        <div className="flex items-center my-5">
-          <div className="flex-1 h-px bg-outline-variant" />
-          <span className="px-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">o continuar con</span>
-          <div className="flex-1 h-px bg-outline-variant" />
-        </div>
-
-        <GoogleAuthButton />
 
         <p className="text-center text-sm text-on-surface-variant mt-6">
           ¿No tienes una cuenta?{" "}
