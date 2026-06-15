@@ -14,6 +14,7 @@ import {
   predictionOutcome,
 } from "../utils/match";
 import { compressFileToBase64 } from "../utils/image";
+import { dialog } from "../store/useDialog";
 
 const OUTCOME_CLASS = { primary: "text-primary", secondary: "text-secondary", muted: "text-on-surface-variant" };
 const MEDAL = { 1: { ring: "#facc15", h: 128 }, 2: { ring: "#94a3b8", h: 96 }, 3: { ring: "#b45309", h: 80 } };
@@ -47,13 +48,13 @@ function PredCard({ match, onSubmit }) {
   const outcome = finished ? predictionOutcome(match.prediction) : null;
 
   const save = async () => {
-    if (h === "" || a === "") return alert("Ingresa ambos marcadores.");
+    if (h === "" || a === "") return dialog.alert("Ingresa ambos marcadores.", { title: "Faltan datos" });
     setSaving(true);
     try {
       await onSubmit(match.id, parseInt(h, 10), parseInt(a, 10));
-      alert("¡Predicción guardada!");
+      dialog.alert("Tu pronóstico fue registrado.", { title: "¡Predicción guardada!", tone: "success" });
     } catch (e) {
-      alert(e?.response?.data?.error || "No se pudo guardar.");
+      dialog.alert(e?.response?.data?.error || "No se pudo guardar.", { title: "Error", tone: "danger" });
     } finally {
       setSaving(false);
     }
@@ -124,13 +125,13 @@ function EditModal({ group, onClose, onSave }) {
     setImage(uri);
   };
   const save = async () => {
-    if (!name.trim()) return alert("El nombre no puede estar vacío.");
+    if (!name.trim()) return dialog.alert("El nombre no puede estar vacío.", { title: "Nombre" });
     setSaving(true);
     try {
       await onSave({ name: name.trim(), imageUrl: image });
       onClose();
     } catch (e) {
-      alert(e?.response?.data?.error || "No se pudo guardar.");
+      dialog.alert(e?.response?.data?.error || "No se pudo guardar.", { title: "Error", tone: "danger" });
     } finally {
       setSaving(false);
     }
@@ -190,7 +191,10 @@ export default function GroupDetail() {
     ? matches.filter((m) => !isMatchClosed(m))
     : matches.filter((m) => isMatchClosed(m)).sort((a, b) => new Date(b.matchDate) - new Date(a.matchDate));
 
-  const copy = () => { navigator.clipboard?.writeText(group.inviteCode); alert(`Código ${group.inviteCode} copiado.`); };
+  const copy = () => {
+    navigator.clipboard?.writeText(group.inviteCode);
+    dialog.alert(`Código ${group.inviteCode} copiado al portapapeles.`, { title: "Copiado", tone: "success" });
+  };
   const onSave = async (data) => { await updateGroup(group.id, data); };
 
   return (

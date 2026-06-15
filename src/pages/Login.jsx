@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
+import { dialog } from "../store/useDialog";
 
 function Field({ icon: Icon, secure, value, onChange, ...props }) {
   const [hidden, setHidden] = useState(secure);
@@ -85,7 +86,7 @@ export default function Login() {
 
         <button
           type="button"
-          onClick={() => alert("El inicio con Google estará disponible pronto.")}
+          onClick={() => dialog.alert("El inicio con Google estará disponible pronto.", { title: "Próximamente" })}
           className="w-full h-12 rounded-xl bg-surface-container-highest border border-outline-variant text-on-surface font-semibold flex items-center justify-center gap-3"
         >
           <span className="font-bold">G</span> Google

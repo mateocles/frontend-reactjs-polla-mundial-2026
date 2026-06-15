@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./index.css";
 import { useAuthStore } from "./store/useAuthStore";
+import DialogHost from "./components/DialogHost";
 import AppLayout from "./layout/AppLayout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -23,6 +24,7 @@ function PublicOnly({ children }) {
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
+    <DialogHost />
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<PublicOnly><Login /></PublicOnly>} />

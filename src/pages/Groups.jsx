@@ -4,12 +4,16 @@ import { Bell, Users, Copy, BarChart3, UserPlus, KeyRound, PlusCircle, ChevronRi
 import Avatar from "../components/atoms/Avatar";
 import { useGroupsStore } from "../store/useGroupsStore";
 import { useAuthStore } from "../store/useAuthStore";
+import { dialog } from "../store/useDialog";
 
 function GroupCard({ group, onOpen }) {
   const copy = (e) => {
     e.stopPropagation();
     navigator.clipboard?.writeText(group.inviteCode);
-    alert(`Código ${group.inviteCode} copiado.`);
+    dialog.alert(`Código ${group.inviteCode} copiado al portapapeles.`, {
+      title: "Copiado",
+      tone: "success",
+    });
   };
   return (
     <div className="glass-card rounded-xl p-5 mb-4">
@@ -81,7 +85,7 @@ export default function Groups() {
       setActiveForm(null);
       setTab("groups");
     } catch (e) {
-      alert(e?.response?.data?.error || "No se pudo crear.");
+      dialog.alert(e?.response?.data?.error || "No se pudo crear.", { title: "Error", tone: "danger" });
     }
   };
 
@@ -93,7 +97,7 @@ export default function Groups() {
       setActiveForm(null);
       setTab("groups");
     } catch (e) {
-      alert(e?.response?.data?.error || "Código inválido.");
+      dialog.alert(e?.response?.data?.error || "Código inválido.", { title: "Error", tone: "danger" });
     }
   };
 

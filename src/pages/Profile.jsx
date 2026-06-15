@@ -5,6 +5,7 @@ import Avatar from "../components/atoms/Avatar";
 import { useAuthStore } from "../store/useAuthStore";
 import { useMatchesStore } from "../store/useMatchesStore";
 import { compressFileToBase64 } from "../utils/image";
+import { dialog } from "../store/useDialog";
 
 function MenuRow({ icon: Icon, label, onClick }) {
   return (
@@ -57,14 +58,22 @@ export default function Profile() {
       const { uri } = await compressFileToBase64(file, { maxWidth: 400, maxBytes: 120 * 1024 });
       await updateProfile({ avatarUrl: uri });
     } catch (err) {
-      alert(err?.response?.data?.error || "No se pudo subir la imagen.");
+      dialog.alert(err?.response?.data?.error || "No se pudo subir la imagen.", {
+        title: "Error",
+        tone: "danger",
+      });
     } finally {
       setUploading(false);
     }
   };
 
-  const doLogout = () => {
-    if (confirm("¿Cerrar sesión?")) {
+  const doLogout = async () => {
+    const ok = await dialog.confirm("¿Seguro que quieres cerrar sesión?", {
+      title: "Cerrar sesión",
+      confirmText: "Salir",
+      tone: "danger",
+    });
+    if (ok) {
       logout();
       navigate("/login");
     }
@@ -99,8 +108,8 @@ export default function Profile() {
 
         <div className="mt-3">
           <MenuRow icon={ListChecks} label="My Predictions" onClick={() => navigate("/matches")} />
-          <MenuRow icon={Settings} label="Account Settings" onClick={() => alert("Próximamente")} />
-          <MenuRow icon={HelpCircle} label="Help & Support" onClick={() => alert("Próximamente")} />
+          <MenuRow icon={Settings} label="Account Settings" onClick={() => dialog.alert("Esta sección estará disponible pronto.", { title: "Próximamente" })} />
+          <MenuRow icon={HelpCircle} label="Help & Support" onClick={() => dialog.alert("Esta sección estará disponible pronto.", { title: "Próximamente" })} />
         </div>
 
         <button onClick={doLogout} className="w-full mt-4 h-12 rounded-xl flex items-center justify-center gap-2 font-bold text-white" style={{ background: "#c62035" }}>
