@@ -18,6 +18,38 @@ const OUTCOME_CLASS = {
   muted: "text-on-surface-variant",
 };
 
+function LiveCard({ match }) {
+  const home = getTeamName(match.homeTeamId, match.homeTeamNameEn);
+  const away = getTeamName(match.awayTeamId, match.awayTeamNameEn);
+  return (
+    <div className="glass-card rounded-xl p-4 mb-3" style={{ borderLeft: "3px solid #ffb4a2" }}>
+      <div className="flex justify-between items-center mb-3">
+        <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase" style={{ background: "rgba(255,180,162,0.15)", color: "#ffb4a2" }}>
+          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#ffb4a2" }} /> En vivo
+        </span>
+        {match.prediction && (
+          <span className="text-[10px] font-bold uppercase text-on-surface-variant">
+            Tu predicción: {match.prediction.homeScore} - {match.prediction.awayScore}
+          </span>
+        )}
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="flex-1 flex flex-col items-center gap-1.5">
+          <TeamBadge name={home} size={40} />
+          <span className="text-[11px] font-bold text-center">{home}</span>
+        </div>
+        <div className="flex items-center gap-3 text-3xl font-extrabold px-2">
+          <span>{match.homeScore ?? 0}</span><span className="text-on-surface-variant text-lg">-</span><span>{match.awayScore ?? 0}</span>
+        </div>
+        <div className="flex-1 flex flex-col items-center gap-1.5">
+          <TeamBadge name={away} size={40} />
+          <span className="text-[11px] font-bold text-center">{away}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function OpenCard({ match }) {
   const home = getTeamName(match.homeTeamId, match.homeTeamNameEn);
   const away = getTeamName(match.awayTeamId, match.awayTeamNameEn);
@@ -139,11 +171,19 @@ export default function Matches() {
     fetchMatches().catch(() => {});
   }, [fetchMatches]);
 
-  const { open, closed, nextDate } = useMemo(() => {
-    const o = matches.filter((m) => !isMatchClosed(m));
-    const c = matches.filter((m) => isMatchClosed(m)).sort((a, b) => new Date(b.matchDate) - new Date(a.matchDate));
-    return { open: o, closed: c, nextDate: o[0]?.matchDate };
+  const { live, open, closed, nextDate } = useMemo(() => {
+    const lv = matches.filter((m) => m.status === "live");
+    const o = matches.filter((m) => m.status === "notstarted" && !isMatchClosed(m));
+    const c = matches.filter((m) => m.status === "finished").sort((a, b) => new Date(b.matchDate) - new Date(a.matchDate));
+    return { live: lv, open: o, closed: c, nextDate: o[0]?.matchDate };
   }, [matches]);
+
+  // Auto-refresh cada 30s mientras haya partidos en vivo.
+  useEffect(() => {
+    if (live.length === 0) return;
+    const id = setInterval(() => fetchMatches().catch(() => {}), 30000);
+    return () => clearInterval(id);
+  }, [live.length, fetchMatches]);
 
   const list = tab === "open" ? open : closed;
 
@@ -164,6 +204,16 @@ export default function Matches() {
             <p className="text-2xl font-extrabold mt-0.5">{nextDate ? formatMatchShort(nextDate) : "Sin partidos"}</p>
           </div>
         </div>
+
+        {live.length > 0 && (
+          <div className="mt-3">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#ffb4a2" }} />
+              <span className="text-xs font-bold uppercase tracking-wide" style={{ color: "#ffb4a2" }}>En vivo ahora</span>
+            </div>
+            {live.map((m) => <LiveCard key={m.id} match={m} />)}
+          </div>
+        )}
 
         <div className="flex bg-surface-container-lowest rounded-full p-1 my-4">
           {[["open", "Próximos"], ["closed", "Finalizados"]].map(([k, label]) => (
