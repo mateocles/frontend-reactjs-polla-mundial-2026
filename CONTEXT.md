@@ -1,50 +1,62 @@
 # 🧠 Contexto — `frontend_polla_web` (App web)
 
+> Documento para que otra IA/dev continúe. Refleja el estado actual.
+
 ## ¿Qué es?
-La **versión web** (navegador) de la Polla Mundialista, hecha con **ReactJS (Vite)**. Es un port de la app móvil [`frontend_polla`](../frontend_polla): misma arquitectura, mismo backend y mismo design system, pero con idioms web. Pensada como una PWA estilo móvil (contenedor centrado `max-w-md`).
+Versión web (**ReactJS + Vite**) de la Polla Mundialista. Port de la app móvil [`frontend_polla`](../frontend_polla): misma arquitectura, mismo backend y mismo design system, con idioms web. Contenedor estilo móvil (`max-w-md`). Desplegada en **Netlify** (`pollamundialista2026cop.netlify.app`).
 
 ## Stack
-- **Vite + React 18**.
-- **Tailwind CSS v3** (tokens "Pitch Kinetic Dark", reales de web — los mockups originales eran Tailwind web, así que el calce es muy fiel).
-- **Zustand** — estado global, persistencia en **`localStorage`**.
-- **React Router v6** — navegación por URL con **rutas protegidas** por token.
-- **Axios** (mismo backend) + **lucide-react** (iconos).
+- **Vite + React 18**, **Tailwind CSS v3** (tokens "Pitch Kinetic Dark", cian eléctrico).
+- **Zustand** (estado, persistencia en `localStorage`), **React Router v6** (rutas protegidas por token).
+- **Axios** + **lucide-react**. `@react-oauth/google` instalado (botones ocultos por ahora).
 
-## Arquitectura (espejo de la app móvil)
+## Arquitectura (espejo de la móvil)
 ```
 src/
-├── api/            # axiosConfig (token desde localStorage) + services
-├── store/          # useAuthStore, useGroupsStore, useMatchesStore
-├── components/atoms/  # Avatar, TeamBadge
+├── api/            # axiosConfig (token de localStorage) + services (auth, group, prediction)
+├── store/          # useAuthStore, useGroupsStore, useMatchesStore, useDialog
+├── components/     # Avatar(uri), TeamBadge, DialogHost, GoogleAuthButton
 ├── pages/          # Login, Register, Matches, Groups, GroupDetail, Profile
 ├── layout/         # AppLayout (contenedor móvil) + BottomNav
 ├── config/ theme/ utils/
 ```
 
-## Pantallas (paridad con la móvil)
-- **Login / Register** con validación.
-- **Matches**: tabs Próximos / Finalizados; finalizados con **drawer de goleadores**.
-- **Groups**: tabs Mis Grupos / Acciones (crear / unirse, código copiable).
-- **GroupDetail**: banner **editable solo admin**, código, **Ranking** (podio + lista + badge Admin) y **Mis Pronósticos** (predecir; bloqueado al iniciar el partido).
-- **Profile**: avatar editable, stats, logout.
+## Funcionalidades actuales (paridad con la móvil)
+- **Auth**: login/registro por correo. Endpoint Google existe; **botones de Google ocultos** (se reactivan con `GoogleAuthButton` + `VITE_GOOGLE_CLIENT_ID`).
+- **Matches**: tabs Próximos/Finalizados; finalizados con **drawer de goleadores**.
+- **Groups**: tabs Mis Grupos / Acciones. Crear (**checkbox Público/Privado**), unirse por código, **explorar y unirse a grupos públicos**.
+- **GroupDetail**: banner **editable solo admin** (imagen base64), **Ranking** con **fotos** + badge Admin; tocar un usuario abre **modal con sus pronósticos** (partidos cerrados); **Mis Pronósticos** (predecir; bloqueado al iniciar).
+- **Profile**: avatar editable (file input + compresión por canvas), stats, logout.
+- **Diálogos**: `useDialog` + `DialogHost` (alert/confirm) en vez de `alert()/confirm()` nativos.
 
-## Diferencias intencionales vs. la app móvil
-| Tema | Móvil (`frontend_polla`) | Web (`frontend_polla_web`) |
+## Routing en producción (SPA)
+Al recargar rutas como `/matches` el server da 404 si no se redirige a `index.html`. Configurado:
+- **Netlify**: [`public/_redirects`](public/_redirects) + [`netlify.toml`](netlify.toml) (`/* /index.html 200`).
+- **Vercel**: [`vercel.json`](vercel.json) con rewrite a `/index.html`.
+
+## Config / env (Vite, prefijo `VITE_`)
+- [`.env`](.env): `VITE_API_BASE_URL` (backend Vercel), `VITE_REQUEST_TIMEOUT`, `VITE_GOOGLE_CLIENT_ID`.
+- En **Netlify**: definir esas `VITE_*` en Site settings → Environment variables (Vite las incrusta al build) y reconstruir.
+- Imágenes: compresión por **canvas** ([`utils/image.js`](src/utils/image.js)).
+
+## Diferencias vs. móvil (intencionales)
+| Tema | Móvil | Web |
 |---|---|---|
-| Navegación | React Navigation (tabs nativos) | React Router (URLs) |
+| Navegación | React Navigation | React Router (URLs) |
 | Sesión | AsyncStorage | localStorage |
-| Estilos | NativeWind | Tailwind CSS web |
-| Imágenes | expo-image-picker/manipulator | `<input type=file>` + **canvas** |
+| Imágenes | expo-image-picker/manipulator | `<input type=file>` + canvas |
 | Iconos | lucide-react-native | lucide-react |
-
-> La lógica (stores, services, reglas, compresión a base64, banderas flagcdn) es **equivalente** a la móvil.
 
 ## Correr
 ```bash
 npm install
 npm run dev          # http://localhost:5173
 ```
-Requiere el `backend_polla` en `http://localhost:3000` (CORS habilitado). URL configurable en [`src/config/env.js`](src/config/env.js).
+Requiere el `backend_polla` accesible (por defecto el de Vercel). Cambia `VITE_API_BASE_URL` para apuntar a local.
+
+## Pendientes / ideas
+- Reactivar botones de Google (poner `VITE_GOOGLE_CLIENT_ID` y autorizar el dominio en Google Cloud).
+- PWA / mejoras responsive para escritorio.
 
 ## Relación
-Cliente web del `backend_polla`, hermano de la app móvil `frontend_polla`. Comparten backend, modelo mental y diseño.
+Cliente web del `backend_polla`, hermano de `frontend_polla` (misma lógica y diseño).
