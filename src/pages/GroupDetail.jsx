@@ -19,11 +19,15 @@ import { dialog } from "../store/useDialog";
 const OUTCOME_CLASS = { primary: "text-primary", secondary: "text-secondary", muted: "text-on-surface-variant" };
 const MEDAL = { 1: { ring: "#facc15", h: 128 }, 2: { ring: "#94a3b8", h: 96 }, 3: { ring: "#b45309", h: 80 } };
 
-function PodiumPlace({ place, row }) {
+function PodiumPlace({ place, row, onSelect }) {
   if (!row) return <div className="flex-1" />;
   const c = MEDAL[place];
   return (
-    <div className="flex-1 flex flex-col items-center" style={{ maxWidth: place === 1 ? 120 : 100 }}>
+    <button
+      onClick={() => onSelect?.(row)}
+      className="flex-1 flex flex-col items-center active:scale-[0.98]"
+      style={{ maxWidth: place === 1 ? 120 : 100 }}
+    >
       {place === 1 ? <Crown size={26} color="#facc15" fill="#facc15" /> : <Medal size={18} color={c.ring} />}
       <div className="rounded-full mt-1" style={{ border: `${place === 1 ? 3 : 2}px solid ${c.ring}` }}>
         <Avatar name={row.name} uri={row.avatarUrl} size={place === 1 ? 72 : 56} />
@@ -33,7 +37,7 @@ function PodiumPlace({ place, row }) {
       <div className={`w-full rounded-t-lg mt-2 flex items-end justify-center pb-2 ${place === 1 ? "bg-primary/20" : "bg-surface-container-high"}`} style={{ height: c.h }}>
         <span className={`font-bold text-lg ${place === 1 ? "text-primary" : "text-on-surface-variant"}`}>#{place}</span>
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -138,8 +142,8 @@ function EditModal({ group, onClose, onSave }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/70" onClick={onClose}>
-      <div className="w-full max-w-md glass-card rounded-t-2xl p-5" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/70" onClick={onClose}>
+      <div className="w-full max-w-md glass-card rounded-2xl p-5 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-5">
           <h3 className="text-xl font-bold">Editar grupo</h3>
           <button onClick={onClose}><X className="text-on-surface-variant" /></button>
@@ -209,34 +213,36 @@ export default function GroupDetail() {
       </header>
 
       <div className="px-4">
-        {/* Banner */}
-        <div className="relative h-44 rounded-xl overflow-hidden mt-2 mb-5 flex items-end">
+        {/* Banner con código de invitación inmerso */}
+        <div className="relative h-44 rounded-xl overflow-hidden mt-2 mb-5">
           {group.imageUrl ? (
             <img src={group.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
           ) : (
             <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(0,242,255,0.25), rgba(11,19,38,0.3), rgba(6,13,32,0.95))" }} />
           )}
           <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(11,19,38,0.85), transparent)" }} />
-          <div className="relative p-4 flex items-end justify-between w-full">
+
+          {/* Código de invitación (esquina superior) */}
+          {group.inviteCode && (
+            <div className="absolute top-3 right-3 glass-card rounded-lg px-3 py-2 flex items-center gap-2">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">Invite Code</p>
+                <p className="text-sm font-bold text-primary tracking-widest">{group.inviteCode}</p>
+              </div>
+              <button onClick={copy} className="w-8 h-8 rounded-md bg-primary/10 text-primary flex items-center justify-center"><Copy size={16} /></button>
+            </div>
+          )}
+
+          {/* Nombre + editar (parte inferior) */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
             <h2 className="text-2xl font-extrabold">{group.name}</h2>
             {isAdmin && (
-              <button onClick={() => setEditing(true)} className="w-10 h-10 rounded-full bg-surface/80 border border-white/10 flex items-center justify-center text-primary">
+              <button onClick={() => setEditing(true)} className="w-10 h-10 rounded-full bg-surface/80 border border-white/10 flex items-center justify-center text-primary shrink-0">
                 <Pencil size={18} />
               </button>
             )}
           </div>
         </div>
-
-        {/* Invite code */}
-        {group.inviteCode && (
-          <div className="glass-card rounded-xl p-4 mb-6 flex justify-between items-center" style={{ borderColor: "rgba(0,242,255,0.2)" }}>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Invite Code</p>
-              <p className="text-xl font-bold text-primary tracking-widest mt-0.5">{group.inviteCode}</p>
-            </div>
-            <button onClick={copy} className="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center"><Copy size={22} /></button>
-          </div>
-        )}
 
         {/* Tabs */}
         <div className="flex border-b border-white/5">
@@ -251,9 +257,9 @@ export default function GroupDetail() {
             {ownerName && <p className="text-sm text-on-surface-variant mb-2">Creado por <span className="text-secondary font-bold">{ownerName}</span></p>}
             {rows.length > 0 && (
               <div className="flex items-end justify-center gap-2 pt-4">
-                <PodiumPlace place={2} row={top3[1]} />
-                <PodiumPlace place={1} row={top3[0]} />
-                <PodiumPlace place={3} row={top3[2]} />
+                <PodiumPlace place={2} row={top3[1]} onSelect={setViewUser} />
+                <PodiumPlace place={1} row={top3[0]} onSelect={setViewUser} />
+                <PodiumPlace place={3} row={top3[2]} onSelect={setViewUser} />
               </div>
             )}
             <div className="mt-6">
@@ -319,8 +325,8 @@ function UserPredictionsModal({ user, groupId, onClose }) {
   }, [user.userId, groupId]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/70" onClick={onClose}>
-      <div className="w-full max-w-md glass-card rounded-t-2xl p-5 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/70" onClick={onClose}>
+      <div className="w-full max-w-md glass-card rounded-2xl p-5 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <Avatar name={user.name} uri={user.avatarUrl} size={40} />
