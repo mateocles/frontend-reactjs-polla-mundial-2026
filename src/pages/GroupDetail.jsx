@@ -26,7 +26,7 @@ function PodiumPlace({ place, row }) {
     <div className="flex-1 flex flex-col items-center" style={{ maxWidth: place === 1 ? 120 : 100 }}>
       {place === 1 ? <Crown size={26} color="#facc15" fill="#facc15" /> : <Medal size={18} color={c.ring} />}
       <div className="rounded-full mt-1" style={{ border: `${place === 1 ? 3 : 2}px solid ${c.ring}` }}>
-        <Avatar name={row.name} size={place === 1 ? 72 : 56} />
+        <Avatar name={row.name} uri={row.avatarUrl} size={place === 1 ? 72 : 56} />
       </div>
       <span className={`text-xs font-bold text-center mt-1 ${place === 1 ? "text-primary" : ""}`}>{row.name}</span>
       <span className="text-xs font-bold text-primary">{row.totalPoints} pts</span>
@@ -171,6 +171,7 @@ export default function GroupDetail() {
   const [tab, setTab] = useState("ranking");
   const [predFilter, setPredFilter] = useState("upcoming");
   const [editing, setEditing] = useState(false);
+  const [viewUser, setViewUser] = useState(null);
 
   const group = useMemo(() => groups.find((g) => g.id === groupId) || { id: groupId, name: "Grupo" }, [groups, groupId]);
   const isAdmin = currentUser?.id === group.ownerId;
@@ -262,15 +263,19 @@ export default function GroupDetail() {
                 const me = r.userId === currentUser?.id;
                 const admin = r.userId === group.ownerId;
                 return (
-                  <div key={r.userId} className={`flex items-center p-4 rounded-xl mb-2 ${me ? "bg-primary/10 border border-primary/30" : "glass-card"}`}>
+                  <button
+                    key={r.userId}
+                    onClick={() => setViewUser(r)}
+                    className={`w-full text-left flex items-center p-4 rounded-xl mb-2 active:scale-[0.99] ${me ? "bg-primary/10 border border-primary/30" : "glass-card"}`}
+                  >
                     <span className={`w-6 text-center font-bold ${me ? "text-primary" : "text-on-surface-variant"}`}>{r.rank}</span>
-                    <div className="mx-3"><Avatar name={r.name} size={40} /></div>
+                    <div className="mx-3"><Avatar name={r.name} uri={r.avatarUrl} size={40} /></div>
                     <div className="flex-1 flex items-center gap-2 min-w-0">
                       <span className={`truncate ${me ? "text-primary font-bold" : ""}`}>{r.name}{me ? " (Tú)" : ""}</span>
                       {admin && <span className="px-2 py-0.5 rounded-full bg-secondary/20 text-secondary text-[10px] font-bold uppercase">Admin</span>}
                     </div>
                     <span className={`font-bold ${me ? "text-primary" : ""}`}>{r.totalPoints} pts</span>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -291,6 +296,76 @@ export default function GroupDetail() {
       </div>
 
       {editing && <EditModal group={group} onClose={() => setEditing(false)} onSave={onSave} />}
+      {viewUser && (
+        <UserPredictionsModal
+          user={viewUser}
+          groupId={group.id}
+          onClose={() => setViewUser(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// Modal: pronósticos de otro usuario (solo partidos ya iniciados/finalizados).
+function UserPredictionsModal({ user, groupId, onClose }) {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    PredictionService.getUserPredictions(user.userId, groupId)
+      .then(setData)
+      .catch((e) => setError(e?.response?.data?.error || "No se pudo cargar."));
+  }, [user.userId, groupId]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/70" onClick={onClose}>
+      <div className="w-full max-w-md glass-card rounded-t-2xl p-5 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Avatar name={user.name} uri={user.avatarUrl} size={40} />
+            <div>
+              <p className="font-bold">{user.name}</p>
+              <p className="text-xs text-on-surface-variant">Pronósticos</p>
+            </div>
+          </div>
+          <button onClick={onClose}><X className="text-on-surface-variant" /></button>
+        </div>
+
+        {error && <p className="text-error text-sm">{error}</p>}
+        {!data && !error && <p className="text-on-surface-variant text-sm">Cargando…</p>}
+
+        {data?.matches?.filter((m) => m.prediction).length === 0 && (
+          <p className="text-on-surface-variant text-sm text-center py-6">
+            Sin pronósticos en partidos cerrados.
+          </p>
+        )}
+
+        {data?.matches?.filter((m) => m.prediction).map((m) => {
+          const outcome = m.status === "finished" ? predictionOutcome(m.prediction) : null;
+          return (
+            <div key={m.id} className="glass-card rounded-xl p-3 mb-2">
+              <div className="flex items-center justify-between text-xs text-on-surface-variant mb-2">
+                <span>{formatMatchShort(m.matchDate)}</span>
+                {m.prediction?.points != null && m.status === "finished" && (
+                  <span className="text-primary font-bold">+{m.prediction.points} pts</span>
+                )}
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex-1 text-sm font-bold truncate">{getTeamName(m.homeTeamId, m.homeTeamNameEn)}</span>
+                <span className="px-3 font-bold">{m.prediction.homeScore} - {m.prediction.awayScore}</span>
+                <span className="flex-1 text-sm font-bold truncate text-right">{getTeamName(m.awayTeamId, m.awayTeamNameEn)}</span>
+              </div>
+              {m.status === "finished" && (
+                <div className="flex items-center justify-between text-[11px] mt-2 text-on-surface-variant">
+                  <span>Real: {m.homeScore} - {m.awayScore}</span>
+                  {outcome && <span className="font-bold uppercase">{outcome.label}</span>}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

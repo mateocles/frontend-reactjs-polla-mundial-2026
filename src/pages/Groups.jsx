@@ -65,27 +65,40 @@ function ActionRow({ icon: Icon, title, subtitle, tone, onClick }) {
 }
 
 export default function Groups() {
-  const { groups, fetchGroups, createGroup, joinGroup } = useGroupsStore();
+  const { groups, publicGroups, fetchGroups, fetchPublicGroups, createGroup, joinGroup, joinPublicGroup } =
+    useGroupsStore();
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
   const [tab, setTab] = useState("groups");
   const [activeForm, setActiveForm] = useState(null);
   const [name, setName] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
   const [code, setCode] = useState("");
 
   useEffect(() => {
     fetchGroups().catch(() => {});
-  }, [fetchGroups]);
+    fetchPublicGroups().catch(() => {});
+  }, [fetchGroups, fetchPublicGroups]);
 
   const handleCreate = async () => {
     if (!name.trim()) return;
     try {
-      await createGroup(name.trim());
+      await createGroup(name.trim(), isPublic);
       setName("");
+      setIsPublic(false);
       setActiveForm(null);
       setTab("groups");
     } catch (e) {
       dialog.alert(e?.response?.data?.error || "No se pudo crear.", { title: "Error", tone: "danger" });
+    }
+  };
+
+  const handleJoinPublic = async (g) => {
+    try {
+      await joinPublicGroup(g.id);
+      setTab("groups");
+    } catch (e) {
+      dialog.alert(e?.response?.data?.error || "No se pudo unir.", { title: "Error", tone: "danger" });
     }
   };
 
@@ -145,9 +158,15 @@ export default function Groups() {
 
               <ActionRow icon={UserPlus} title="Crear Grupo" subtitle="Define reglas y premios." tone="primary" onClick={() => setActiveForm(activeForm === "create" ? null : "create")} />
               {activeForm === "create" && (
-                <div className="glass-card rounded-xl p-4 mb-4 flex gap-2">
-                  <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre del grupo" className="flex-1 h-11 px-3 rounded-lg bg-surface-container-lowest border border-outline-variant outline-none focus:border-primary" />
-                  <button onClick={handleCreate} className="px-4 rounded-lg bg-primary text-on-primary font-bold">Crear</button>
+                <div className="glass-card rounded-xl p-4 mb-4">
+                  <div className="flex gap-2">
+                    <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre del grupo" className="flex-1 h-11 px-3 rounded-lg bg-surface-container-lowest border border-outline-variant outline-none focus:border-primary" />
+                    <button onClick={handleCreate} className="px-4 rounded-lg bg-primary text-on-primary font-bold">Crear</button>
+                  </div>
+                  <label className="flex items-center gap-2 mt-3 text-sm text-on-surface-variant cursor-pointer">
+                    <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} className="accent-[#00f2ff] w-4 h-4" />
+                    Grupo público (cualquiera puede unirse sin código)
+                  </label>
                 </div>
               )}
 
@@ -159,12 +178,28 @@ export default function Groups() {
                 </div>
               )}
 
-              <div className="rounded-2xl h-40 flex items-end mt-4" style={{ background: "linear-gradient(135deg, rgba(0,242,255,0.25), rgba(11,19,38,0.2), rgba(6,13,32,0.95))" }}>
-                <div className="p-5">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-primary mb-1">Próxima Copa</p>
-                  <h4 className="text-xl font-bold">¡Vive la emoción grupal!</h4>
-                </div>
-              </div>
+              {/* Explorar grupos públicos */}
+              <h3 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mt-6 mb-3">
+                Grupos públicos
+              </h3>
+              {publicGroups.length === 0 ? (
+                <p className="text-sm text-on-surface-variant">No hay grupos públicos por ahora.</p>
+              ) : (
+                publicGroups.map((g) => (
+                  <div key={g.id} className="glass-card rounded-xl p-4 mb-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Avatar name={g.name} uri={g.imageUrl} size={40} />
+                      <div className="min-w-0">
+                        <p className="font-bold truncate">{g.name}</p>
+                        <p className="text-xs text-on-surface-variant">{g.memberCount} participantes</p>
+                      </div>
+                    </div>
+                    <button onClick={() => handleJoinPublic(g)} className="px-4 h-9 rounded-lg bg-primary text-on-primary font-bold text-sm shrink-0">
+                      Unirme
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           )}
         </div>

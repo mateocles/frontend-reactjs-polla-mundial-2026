@@ -6,4 +6,6 @@ export const PredictionService = {
     api.post("/predictions", { matchId, homeScore, awayScore }).then((r) => r.data),
   getLeaderboard: (groupId) =>
     api.get(`/predictions/leaderboard/${groupId}`).then((r) => r.data),
+  getUserPredictions: (userId, groupId) =>
+    api.get(`/predictions/user/${userId}/group/${groupId}`).then((r) => r.data),
 };
