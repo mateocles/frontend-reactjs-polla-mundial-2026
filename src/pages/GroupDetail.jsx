@@ -100,18 +100,18 @@ function PredCard({ match, onSubmit }) {
       {finished ? (
         match.prediction && (
           <div className="mt-3 pt-2 border-t border-white/5 flex justify-between text-sm">
-            <span className="italic text-on-surface-variant">Tu predicción: {match.prediction.homeScore} - {match.prediction.awayScore}</span>
-            {outcome && <span className={`text-xs font-bold uppercase ${OUTCOME_CLASS[outcome.tone]}`}>+{match.prediction.points} pts · {outcome.label}</span>}
+            <span className="italic text-on-surface-variant">{t("matches.yourPrediction", { home: match.prediction.homeScore, away: match.prediction.awayScore })}</span>
+            {outcome && <span className={`text-xs font-bold uppercase ${OUTCOME_CLASS[outcome.tone]}`}>+{match.prediction.points} {t("common.points")} · {t(outcome.key)}</span>}
           </div>
         )
       ) : closed ? (
         <div className="mt-3 pt-2 border-t border-white/5 flex justify-between text-sm">
-          <span className="italic text-on-surface-variant">{match.prediction ? `Tu predicción: ${match.prediction.homeScore} - ${match.prediction.awayScore}` : "Sin predicción"}</span>
-          <span className="text-xs font-bold uppercase text-on-surface-variant">Pronósticos cerrados</span>
+          <span className="italic text-on-surface-variant">{match.prediction ? t("matches.yourPrediction", { home: match.prediction.homeScore, away: match.prediction.awayScore }) : t("matches.noPrediction")}</span>
+          <span className="text-xs font-bold uppercase text-on-surface-variant">{t("groupDetail.predictionsClosed")}</span>
         </div>
       ) : (
         <button onClick={save} disabled={saving} className="w-full mt-3 h-10 rounded-lg bg-primary/10 border border-primary/30 text-primary font-bold text-sm">
-          {saving ? "Guardando..." : "Guardar Pronóstico"}
+          {saving ? t("common.saving") : t("groupDetail.savePrediction")}
         </button>
       )}
     </div>
@@ -119,6 +119,7 @@ function PredCard({ match, onSubmit }) {
 }
 
 function EditModal({ group, onClose, onSave }) {
+  const { t } = useTranslation();
   const [name, setName] = useState(group.name || "");
   const [image, setImage] = useState(group.imageUrl || null);
   const [saving, setSaving] = useState(false);
@@ -131,13 +132,13 @@ function EditModal({ group, onClose, onSave }) {
     setImage(uri);
   };
   const save = async () => {
-    if (!name.trim()) return dialog.alert("El nombre no puede estar vacío.", { title: "Nombre" });
+    if (!name.trim()) return dialog.alert(t("groupDetail.emptyName"), { title: t("groupDetail.nameTitle") });
     setSaving(true);
     try {
       await onSave({ name: name.trim(), imageUrl: image });
       onClose();
     } catch (e) {
-      dialog.alert(e?.response?.data?.error || "No se pudo guardar.", { title: "Error", tone: "danger" });
+      dialog.alert(e?.response?.data?.error || t("groupDetail.saveFailed"), { title: t("common.error"), tone: "danger" });
     } finally {
       setSaving(false);
     }
@@ -147,19 +148,19 @@ function EditModal({ group, onClose, onSave }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/70" onClick={onClose}>
       <div className="w-full max-w-md glass-card rounded-2xl p-5 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-5">
-          <h3 className="text-xl font-bold">Editar grupo</h3>
+          <h3 className="text-xl font-bold">{t("groupDetail.editGroup")}</h3>
           <button onClick={onClose}><X className="text-on-surface-variant" /></button>
         </div>
         <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pick} />
         <button onClick={() => fileRef.current?.click()} className="w-full h-36 rounded-xl overflow-hidden mb-4 bg-surface-container-high border border-white/5 flex items-center justify-center">
           {image ? <img src={image} alt="" className="w-full h-full object-cover" /> : (
-            <span className="flex flex-col items-center text-on-surface-variant"><ImagePlus className="text-primary mb-2" /> Agregar imagen</span>
+            <span className="flex flex-col items-center text-on-surface-variant"><ImagePlus className="text-primary mb-2" /> {t("groupDetail.addImage")}</span>
           )}
         </button>
-        <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant block mb-1.5">Nombre del grupo</label>
+        <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant block mb-1.5">{t("groupDetail.groupName")}</label>
         <input value={name} onChange={(e) => setName(e.target.value)} className="w-full h-12 px-4 rounded-lg bg-surface-container-lowest border border-outline-variant outline-none focus:border-primary" />
         <button onClick={save} disabled={saving} className="w-full h-12 mt-5 rounded-xl bg-primary text-on-primary font-bold">
-          {saving ? "Guardando..." : "Guardar cambios"}
+          {saving ? t("common.saving") : t("groupDetail.saveChanges")}
         </button>
       </div>
     </div>
@@ -167,6 +168,7 @@ function EditModal({ group, onClose, onSave }) {
 }
 
 export default function GroupDetail() {
+  const { t } = useTranslation();
   const { groupId } = useParams();
   const navigate = useNavigate();
   const currentUser = useAuthStore((s) => s.user);
@@ -179,7 +181,7 @@ export default function GroupDetail() {
   const [editing, setEditing] = useState(false);
   const [viewUser, setViewUser] = useState(null);
 
-  const group = useMemo(() => groups.find((g) => g.id === groupId) || { id: groupId, name: "Grupo" }, [groups, groupId]);
+  const group = useMemo(() => groups.find((g) => g.id === groupId) || { id: groupId, name: t("groupDetail.fallbackName") }, [groups, groupId, t]);
   const isAdmin = currentUser?.id === group.ownerId;
 
   useEffect(() => {
@@ -200,7 +202,7 @@ export default function GroupDetail() {
 
   const copy = () => {
     navigator.clipboard?.writeText(group.inviteCode);
-    dialog.alert(`Código ${group.inviteCode} copiado al portapapeles.`, { title: "Copiado", tone: "success" });
+    dialog.alert(t("groups.codeCopied", { code: group.inviteCode }), { title: t("groups.copied"), tone: "success" });
   };
   const onSave = async (data) => { await updateGroup(group.id, data); };
 
@@ -228,7 +230,7 @@ export default function GroupDetail() {
           {group.inviteCode && (
             <div className="absolute top-3 right-3 glass-card rounded-lg px-3 py-2 flex items-center gap-2">
               <div>
-                <p className="text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">Invite Code</p>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">{t("groups.inviteCode")}</p>
                 <p className="text-sm font-bold text-primary tracking-widest">{group.inviteCode}</p>
               </div>
               <button onClick={copy} className="w-8 h-8 rounded-md bg-primary/10 text-primary flex items-center justify-center"><Copy size={16} /></button>
@@ -248,15 +250,15 @@ export default function GroupDetail() {
 
         {/* Tabs */}
         <div className="flex border-b border-white/5">
-          {[["ranking", "Ranking"], ["predictions", "Mis Pronósticos"]].map(([k, label]) => (
+          {[["ranking", t("groupDetail.tabRanking")], ["predictions", t("groupDetail.tabPredictions")]].map(([k, label]) => (
             <button key={k} onClick={() => setTab(k)} className={`flex-1 py-3 font-bold ${tab === k ? "text-primary border-b-2 border-primary" : "text-on-surface-variant"}`}>{label}</button>
           ))}
         </div>
 
         {tab === "ranking" ? (
           <div className="mt-6">
-            <h2 className="text-2xl font-extrabold mb-2">Ranking de Jugadores</h2>
-            {ownerName && <p className="text-sm text-on-surface-variant mb-2">Creado por <span className="text-secondary font-bold">{ownerName}</span></p>}
+            <h2 className="text-2xl font-extrabold mb-2">{t("groupDetail.rankingTitle")}</h2>
+            {ownerName && <p className="text-sm text-on-surface-variant mb-2">{t("groupDetail.createdBy")} <span className="text-secondary font-bold">{ownerName}</span></p>}
             {rows.length > 0 && (
               <div className="flex items-end justify-center gap-2 pt-4">
                 <PodiumPlace place={2} row={top3[1]} onSelect={setViewUser} />
@@ -266,7 +268,7 @@ export default function GroupDetail() {
             )}
             <div className="mt-6">
               {rankList.length === 0 ? (
-                <p className="text-center text-on-surface-variant mt-6">Aún no hay más posiciones.</p>
+                <p className="text-center text-on-surface-variant mt-6">{t("groupDetail.noMorePositions")}</p>
               ) : rankList.map((r) => {
                 const me = r.userId === currentUser?.id;
                 const admin = r.userId === group.ownerId;
@@ -279,8 +281,8 @@ export default function GroupDetail() {
                     <span className={`w-6 text-center font-bold ${me ? "text-primary" : "text-on-surface-variant"}`}>{r.rank}</span>
                     <div className="mx-3"><Avatar name={r.name} uri={r.avatarUrl} size={40} /></div>
                     <div className="flex-1 flex items-center gap-2 min-w-0">
-                      <span className={`truncate ${me ? "text-primary font-bold" : ""}`}>{r.name}{me ? " (Tú)" : ""}</span>
-                      {admin && <span className="px-2 py-0.5 rounded-full bg-secondary/20 text-secondary text-[10px] font-bold uppercase">Admin</span>}
+                      <span className={`truncate ${me ? "text-primary font-bold" : ""}`}>{r.name}{me ? ` (${t("common.you")})` : ""}</span>
+                      {admin && <span className="px-2 py-0.5 rounded-full bg-secondary/20 text-secondary text-[10px] font-bold uppercase">{t("groupDetail.admin")}</span>}
                     </div>
                     <span className={`font-bold ${me ? "text-primary" : ""}`}>{r.totalPoints} pts</span>
                   </button>
@@ -290,9 +292,9 @@ export default function GroupDetail() {
           </div>
         ) : (
           <div className="mt-6">
-            <h2 className="text-2xl font-extrabold">Mis Pronósticos</h2>
+            <h2 className="text-2xl font-extrabold">{t("groupDetail.myPredictions")}</h2>
             <div className="flex gap-3 mt-4 mb-2">
-              {[["upcoming", "Próximos"], ["finished", "Finalizados"]].map(([k, label]) => (
+              {[["upcoming", t("groupDetail.filterUpcoming")], ["finished", t("groupDetail.filterFinished")]].map(([k, label]) => (
                 <button key={k} onClick={() => setPredFilter(k)} className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase ${predFilter === k ? "bg-primary text-on-primary" : "bg-surface-container-highest text-on-surface-variant"}`}>{label}</button>
               ))}
             </div>
