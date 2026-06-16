@@ -326,16 +326,16 @@ function UserPredictionsModal({ user, groupId, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/70" onClick={onClose}>
-      <div className="w-full max-w-md glass-card rounded-2xl p-5 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
+      <div className="w-full max-w-md glass-card rounded-2xl p-5 max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
             <Avatar name={user.name} uri={user.avatarUrl} size={40} />
-            <div>
-              <p className="font-bold">{user.name}</p>
+            <div className="min-w-0">
+              <p className="font-bold truncate">{user.name}</p>
               <p className="text-xs text-on-surface-variant">Pronósticos</p>
             </div>
           </div>
-          <button onClick={onClose}><X className="text-on-surface-variant" /></button>
+          <button onClick={onClose} className="shrink-0 ml-2"><X className="text-on-surface-variant" /></button>
         </div>
 
         {error && <p className="text-error text-sm">{error}</p>}
@@ -347,6 +347,8 @@ function UserPredictionsModal({ user, groupId, onClose }) {
           </p>
         )}
 
+        {/* Lista con scroll interno (≈3 pronósticos visibles) */}
+        <div className="overflow-y-auto pr-1" style={{ maxHeight: "340px" }}>
         {data?.matches?.filter((m) => m.prediction).map((m) => {
           const outcome = m.status === "finished" ? predictionOutcome(m.prediction) : null;
           return (
@@ -371,6 +373,7 @@ function UserPredictionsModal({ user, groupId, onClose }) {
             </div>
           );
         })}
+        </div>
       </div>
     </div>
   );
