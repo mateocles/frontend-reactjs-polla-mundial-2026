@@ -1,19 +1,21 @@
-// Design System: "Pitch Kinetic Dark" (para usos en JS / SVG / inline).
+// Design System: "Pitch Kinetic" (para usos en JS / SVG / inline).
+// Apuntan a las variables CSS definidas en src/index.css, de modo que los
+// estilos inline y SVG se adaptan automáticamente al tema claro/oscuro.
 export const colors = {
-  surface: "#0b1326",
-  surfaceContainerLowest: "#060d20",
-  surfaceContainerLow: "#131b2e",
-  surfaceContainer: "#171f33",
-  surfaceContainerHigh: "#222a3e",
-  surfaceContainerHighest: "#2d3449",
-  background: "#0b1326",
-  onSurface: "#dbe2fd",
-  onSurfaceVariant: "#b9cacb",
-  outline: "#849495",
-  outlineVariant: "#3a494b",
-  primary: "#00f2ff",
-  onPrimary: "#00363a",
-  secondary: "#d1bcff",
-  tertiary: "#ffb4a2",
-  error: "#ffb4ab",
+  surface: "var(--surface)",
+  surfaceContainerLowest: "var(--surface-container-lowest)",
+  surfaceContainerLow: "var(--surface-container-low)",
+  surfaceContainer: "var(--surface-container)",
+  surfaceContainerHigh: "var(--surface-container-high)",
+  surfaceContainerHighest: "var(--surface-container-highest)",
+  background: "var(--background)",
+  onSurface: "var(--on-surface)",
+  onSurfaceVariant: "var(--on-surface-variant)",
+  outline: "var(--outline)",
+  outlineVariant: "var(--outline-variant)",
+  primary: "var(--primary)",
+  onPrimary: "var(--on-primary)",
+  secondary: "var(--secondary)",
+  tertiary: "var(--tertiary)",
+  error: "var(--error)",
 };

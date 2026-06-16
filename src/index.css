@@ -2,8 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* ====================================================================
+   Design System: "Pitch Kinetic" — tema dual (claro/oscuro)
+   Los tokens se exponen como variables CSS para que tanto las clases de
+   Tailwind como los estilos inline / SVG (theme/colors.js) se adapten al
+   cambiar la clase del <html> (.dark / .light).
+   ==================================================================== */
+
+/* --- Tema oscuro (por defecto) --- */
+:root,
+.dark {
   color-scheme: dark;
+
+  --surface: #0b1326;
+  --surface-dim: #0b1326;
+  --surface-bright: #31394e;
+  --surface-container-lowest: #060d20;
+  --surface-container-low: #131b2e;
+  --surface-container: #171f33;
+  --surface-container-high: #222a3e;
+  --surface-container-highest: #2d3449;
+  --surface-variant: #2d3449;
+  --background: #0b1326;
+  --on-background: #dbe2fd;
+  --on-surface: #dbe2fd;
+  --on-surface-variant: #b9cacb;
+  --outline: #849495;
+  --outline-variant: #3a494b;
+  --primary: #00f2ff;
+  --primary-container: #00f2ff;
+  --on-primary: #00363a;
+  --on-primary-container: #006a71;
+  --secondary: #d1bcff;
+  --secondary-container: #7000ff;
+  --on-secondary: #3c0090;
+  --tertiary: #ffb4a2;
+  --on-tertiary: #621100;
+  --error: #ffb4ab;
+  --error-container: #93000a;
+  --on-error: #690005;
+  --on-error-container: #ffdad6;
+
+  --glass-bg: rgba(30, 41, 59, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --scrollbar-thumb: #222a3e;
+}
+
+/* --- Tema claro --- */
+.light {
+  color-scheme: light;
+
+  --surface: #f5f7fc;
+  --surface-dim: #e3e7f0;
+  --surface-bright: #ffffff;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #eef1f8;
+  --surface-container: #e8ecf4;
+  --surface-container-high: #e2e6f0;
+  --surface-container-highest: #dce1ec;
+  --surface-variant: #dce1ec;
+  --background: #f5f7fc;
+  --on-background: #1a2138;
+  --on-surface: #1a2138;
+  --on-surface-variant: #45505f;
+  --outline: #6f7c8b;
+  --outline-variant: #c2ccd8;
+  --primary: #00829a;
+  --primary-container: #9eeefb;
+  --on-primary: #ffffff;
+  --on-primary-container: #00363f;
+  --secondary: #5b39c4;
+  --secondary-container: #e7ddff;
+  --on-secondary: #ffffff;
+  --tertiary: #b3402a;
+  --on-tertiary: #ffffff;
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+  --on-error: #ffffff;
+  --on-error-container: #410002;
+
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --scrollbar-thumb: #c2ccd8;
 }
 
 html,
@@ -14,23 +94,23 @@ body,
 
 body {
   margin: 0;
-  background-color: #0b1326;
-  color: #dbe2fd;
+  background-color: var(--background);
+  color: var(--on-surface);
   font-family: "Inter", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
 /* Glass effect reutilizable */
 .glass-card {
-  background: rgba(30, 41, 59, 0.7);
+  background: var(--glass-bg);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
 }
 
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #222a3e;
+  background: var(--scrollbar-thumb);
   border-radius: 9999px;
 }

@@ -4,12 +4,16 @@ import { GroupService } from "../api/services/groupService";
 export const useGroupsStore = create((set) => ({
   groups: [],
   loading: false,
+  error: false,
 
   fetchGroups: async () => {
-    set({ loading: true });
+    set({ loading: true, error: false });
     try {
       const groups = await GroupService.list();
-      set({ groups });
+      set({ groups, error: false });
+    } catch (e) {
+      set({ error: true });
+      throw e;
     } finally {
       set({ loading: false });
     }

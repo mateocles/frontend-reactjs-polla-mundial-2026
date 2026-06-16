@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 
@@ -25,6 +26,7 @@ function Field({ icon: Icon, secure, value, onChange, ...props }) {
 }
 
 export default function Login() {
+  const { t } = useTranslation();
   const login = useAuthStore((s) => s.login);
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -34,14 +36,14 @@ export default function Login() {
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!email || !password) return setError("Ingresa tu correo y contraseña.");
+    if (!email || !password) return setError(t("auth.missingCreds"));
     setLoading(true);
     setError("");
     try {
       await login(email.trim(), password);
       navigate("/matches");
     } catch (err) {
-      setError(err?.response?.data?.error || "No se pudo iniciar sesión.");
+      setError(err?.response?.data?.error || t("auth.loginFailed"));
     } finally {
       setLoading(false);
     }
@@ -53,18 +55,18 @@ export default function Login() {
         <div className="w-20 h-20 rounded-full bg-surface-container-high flex items-center justify-center text-4xl shadow-[0_0_25px_rgba(0,242,255,0.3)]">
           ⚽
         </div>
-        <h1 className="text-3xl font-extrabold text-primary mt-4 tracking-tight">Polla Mundialista</h1>
-        <p className="text-on-surface-variant mt-1">¡Bienvenido de nuevo!</p>
+        <h1 className="text-3xl font-extrabold text-primary mt-4 tracking-tight">{t("common.appName")}</h1>
+        <p className="text-on-surface-variant mt-1">{t("auth.welcomeBack")}</p>
       </div>
 
       <form onSubmit={submit} className="w-full glass-card rounded-xl p-6">
-        <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Email</label>
+        <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">{t("auth.email")}</label>
         <div className="mt-1.5">
-          <Field icon={Mail} value={email} onChange={setEmail} placeholder="nombre@ejemplo.com" />
+          <Field icon={Mail} value={email} onChange={setEmail} placeholder={t("auth.emailPlaceholder")} />
         </div>
 
         <div className="flex justify-between items-center mt-4 mb-1.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Contraseña</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">{t("auth.password")}</label>
         </div>
         <Field icon={Lock} secure value={password} onChange={setPassword} placeholder="••••••••" />
 
@@ -74,12 +76,12 @@ export default function Login() {
           disabled={loading}
           className="w-full h-12 mt-5 rounded-xl bg-primary text-on-primary font-bold shadow-[0_0_20px_rgba(0,242,255,0.3)] disabled:opacity-50 active:scale-[0.99] transition"
         >
-          {loading ? "Entrando..." : "Iniciar Sesión"}
+          {loading ? t("auth.signingIn") : t("auth.signIn")}
         </button>
 
         <p className="text-center text-sm text-on-surface-variant mt-6">
-          ¿No tienes una cuenta?{" "}
-          <Link to="/register" className="text-primary font-bold">Regístrate</Link>
+          {t("auth.noAccount")}{" "}
+          <Link to="/register" className="text-primary font-bold">{t("auth.register")}</Link>
         </p>
       </form>
     </div>

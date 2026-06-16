@@ -23,9 +23,9 @@ src/
 
 ## Funcionalidades actuales (paridad con la móvil)
 - **Auth**: login/registro por correo. Endpoint Google existe; **botones de Google ocultos** (se reactivan con `GoogleAuthButton` + `VITE_GOOGLE_CLIENT_ID`).
-- **Matches**: tabs Próximos/Finalizados; finalizados con **drawer de goleadores**.
+- **Matches**: sección **"En vivo ahora"** (status `live`, marcador actual + badge pulsante) + tabs Próximos/Finalizados; finalizados con **drawer de goleadores**. **Auto-refresh** (polling 30s) mientras haya partidos en vivo.
 - **Groups**: tabs Mis Grupos / Acciones. Crear (**checkbox Público/Privado**), unirse por código, **explorar y unirse a grupos públicos**.
-- **GroupDetail**: banner **editable solo admin** (imagen base64), **Ranking** con **fotos** + badge Admin; tocar un usuario abre **modal con sus pronósticos** (partidos cerrados); **Mis Pronósticos** (predecir; bloqueado al iniciar).
+- **GroupDetail**: banner **editable solo admin** (imagen base64) con **código de invitación inmerso**; **Ranking** con **fotos** + badge Admin; **tocar podio o filas** abre **modal con sus pronósticos** (partidos cerrados, **scroll interno** tras ~3, modal centrado); **Mis Pronósticos** (predecir; bloqueado al iniciar).
 - **Profile**: avatar editable (file input + compresión por canvas), stats, logout.
 - **Diálogos**: `useDialog` + `DialogHost` (alert/confirm) en vez de `alert()/confirm()` nativos.
 

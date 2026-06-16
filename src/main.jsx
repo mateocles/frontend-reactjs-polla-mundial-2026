@@ -3,7 +3,9 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import "./index.css";
+import "./i18n";
 import { useAuthStore } from "./store/useAuthStore";
+import { useThemeStore } from "./store/useThemeStore";
 import DialogHost from "./components/DialogHost";
 import AppLayout from "./layout/AppLayout";
 import Login from "./pages/Login";
@@ -24,6 +26,9 @@ function PublicOnly({ children }) {
 }
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+
+// Aplica el tema (claro/oscuro/sistema) antes del primer render.
+useThemeStore.getState().init();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

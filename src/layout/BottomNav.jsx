@@ -1,16 +1,18 @@
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Trophy, Users, User } from "lucide-react";
 
 const ITEMS = [
-  { to: "/matches", label: "Matches", icon: Trophy },
-  { to: "/groups", label: "Groups", icon: Users },
-  { to: "/profile", label: "Profile", icon: User },
+  { to: "/matches", key: "nav.matches", icon: Trophy },
+  { to: "/groups", key: "nav.groups", icon: Users },
+  { to: "/profile", key: "nav.profile", icon: User },
 ];
 
 export default function BottomNav() {
+  const { t } = useTranslation();
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 h-20 flex justify-around items-center border-t border-white/5 bg-surface/80 backdrop-blur-xl">
-      {ITEMS.map(({ to, label, icon: Icon }) => (
+      {ITEMS.map(({ to, key, icon: Icon }) => (
         <NavLink
           key={to}
           to={to}
@@ -21,7 +23,7 @@ export default function BottomNav() {
           }
         >
           <Icon size={22} strokeWidth={2} />
-          <span className="text-[11px] font-semibold">{label}</span>
+          <span className="text-[11px] font-semibold">{t(key)}</span>
         </NavLink>
       ))}
     </nav>

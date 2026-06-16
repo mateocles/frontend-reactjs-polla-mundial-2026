@@ -4,12 +4,16 @@ import { PredictionService } from "../api/services/predictionService";
 export const useMatchesStore = create((set) => ({
   matches: [],
   loading: false,
+  error: false,
 
   fetchMatches: async () => {
-    set({ loading: true });
+    set({ loading: true, error: false });
     try {
       const matches = await PredictionService.getMatches();
-      set({ matches });
+      set({ matches, error: false });
+    } catch (e) {
+      set({ error: true });
+      throw e;
     } finally {
       set({ loading: false });
     }

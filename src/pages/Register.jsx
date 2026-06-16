@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, User, Mail, Lock, Eye, EyeOff, UserPlus } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 
@@ -30,6 +31,7 @@ function Field({ icon: Icon, label, secure, value, onChange, ...props }) {
 }
 
 export default function Register() {
+  const { t } = useTranslation();
   const register = useAuthStore((s) => s.register);
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
@@ -40,15 +42,15 @@ export default function Register() {
   const submit = async (e) => {
     e.preventDefault();
     const { name, email, password, confirm } = form;
-    if (!name || !email || !password || !confirm) return setError("Completa todos los campos.");
-    if (password !== confirm) return setError("Las contraseñas no coinciden.");
+    if (!name || !email || !password || !confirm) return setError(t("auth.fillAll"));
+    if (password !== confirm) return setError(t("auth.passwordMismatch"));
     setLoading(true);
     setError("");
     try {
       await register(name.trim(), email.trim(), password);
       navigate("/matches");
     } catch (err) {
-      setError(err?.response?.data?.error || "No se pudo crear la cuenta.");
+      setError(err?.response?.data?.error || t("auth.registerFailed"));
     } finally {
       setLoading(false);
     }
@@ -60,19 +62,19 @@ export default function Register() {
         <Link to="/login" className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-primary">
           <ArrowLeft size={20} />
         </Link>
-        <h1 className="flex-1 text-center text-xl font-bold text-primary mr-10">Polla Mundialista</h1>
+        <h1 className="flex-1 text-center text-xl font-bold text-primary mr-10">{t("common.appName")}</h1>
       </div>
 
-      <h2 className="text-2xl font-extrabold mt-3">Crea tu cuenta</h2>
+      <h2 className="text-2xl font-extrabold mt-3">{t("auth.createAccount")}</h2>
       <p className="text-sm text-on-surface-variant mt-1 mb-6">
-        Únete a la emoción del mundial y compite con tus amigos.
+        {t("auth.registerSubtitle")}
       </p>
 
       <form onSubmit={submit}>
-        <Field icon={User} label="Nombre Completo" value={form.name} onChange={set("name")} placeholder="Ej. Juan Pérez" />
-        <Field icon={Mail} label="Correo Electrónico" value={form.email} onChange={set("email")} placeholder="nombre@ejemplo.com" />
-        <Field icon={Lock} label="Contraseña" secure value={form.password} onChange={set("password")} placeholder="••••••••" />
-        <Field icon={Lock} label="Confirmar Contraseña" secure value={form.confirm} onChange={set("confirm")} placeholder="••••••••" />
+        <Field icon={User} label={t("auth.fullName")} value={form.name} onChange={set("name")} placeholder={t("auth.fullNamePlaceholder")} />
+        <Field icon={Mail} label={t("auth.emailLabel")} value={form.email} onChange={set("email")} placeholder={t("auth.emailPlaceholder")} />
+        <Field icon={Lock} label={t("auth.password")} secure value={form.password} onChange={set("password")} placeholder="••••••••" />
+        <Field icon={Lock} label={t("auth.confirmPassword")} secure value={form.confirm} onChange={set("confirm")} placeholder="••••••••" />
 
         {error && <p className="text-error text-sm mb-3">{error}</p>}
 
@@ -80,12 +82,12 @@ export default function Register() {
           disabled={loading}
           className="w-full h-14 mt-2 rounded-xl bg-primary text-on-primary font-bold flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,242,255,0.3)] disabled:opacity-50 active:scale-[0.99] transition"
         >
-          {loading ? "Creando..." : "Registrarse"} <UserPlus size={18} />
+          {loading ? t("auth.creating") : t("auth.signUp")} <UserPlus size={18} />
         </button>
 
         <p className="text-center text-sm text-on-surface-variant mt-6">
-          ¿Ya tienes una cuenta?{" "}
-          <Link to="/login" className="text-primary font-bold">Inicia Sesión</Link>
+          {t("auth.haveAccount")}{" "}
+          <Link to="/login" className="text-primary font-bold">{t("auth.doSignIn")}</Link>
         </p>
       </form>
     </div>

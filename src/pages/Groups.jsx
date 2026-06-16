@@ -1,17 +1,21 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, Users, Copy, BarChart3, UserPlus, KeyRound, PlusCircle, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Bell, Users, Copy, BarChart3, UserPlus, KeyRound, PlusCircle } from "lucide-react";
 import Avatar from "../components/atoms/Avatar";
+import Loader from "../components/atoms/Loader";
+import ErrorState from "../components/atoms/ErrorState";
 import { useGroupsStore } from "../store/useGroupsStore";
 import { useAuthStore } from "../store/useAuthStore";
 import { dialog } from "../store/useDialog";
 
 function GroupCard({ group, onOpen }) {
+  const { t } = useTranslation();
   const copy = (e) => {
     e.stopPropagation();
     navigator.clipboard?.writeText(group.inviteCode);
-    dialog.alert(`Código ${group.inviteCode} copiado al portapapeles.`, {
-      title: "Copiado",
+    dialog.alert(t("groups.codeCopied", { code: group.inviteCode }), {
+      title: t("groups.copied"),
       tone: "success",
     });
   };
@@ -22,18 +26,18 @@ function GroupCard({ group, onOpen }) {
           <h3 className="text-xl font-bold">{group.name}</h3>
           <div className="flex items-center gap-1.5 text-on-surface-variant mt-1">
             <Users size={16} />
-            <span className="text-sm">{group.memberCount ?? 0} participantes</span>
+            <span className="text-sm">{t("groups.participants", { count: group.memberCount ?? 0 })}</span>
           </div>
         </div>
         {group.myRank && (
           <span className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-bold uppercase text-primary">
-            Rank: #{group.myRank}
+            {t("groups.rank", { rank: group.myRank })}
           </span>
         )}
       </div>
       <div className="bg-surface-container-low rounded-lg p-4 mt-4 flex justify-between items-center border border-white/5">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Código de invitación</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">{t("groups.inviteCode")}</p>
           <p className="text-primary font-bold tracking-widest mt-1">{group.inviteCode}</p>
         </div>
         <button onClick={copy} className="text-on-surface-variant hover:text-primary">
@@ -44,7 +48,7 @@ function GroupCard({ group, onOpen }) {
         onClick={onOpen}
         className="w-full mt-4 h-11 rounded-xl bg-primary text-on-primary font-bold flex items-center justify-center gap-2 active:scale-[0.99]"
       >
-        <BarChart3 size={18} /> Ver Ranking
+        <BarChart3 size={18} /> {t("groups.viewRanking")}
       </button>
     </div>
   );
@@ -65,7 +69,8 @@ function ActionRow({ icon: Icon, title, subtitle, tone, onClick }) {
 }
 
 export default function Groups() {
-  const { groups, publicGroups, fetchGroups, fetchPublicGroups, createGroup, joinGroup, joinPublicGroup } =
+  const { t } = useTranslation();
+  const { groups, publicGroups, loading, error, fetchGroups, fetchPublicGroups, createGroup, joinGroup, joinPublicGroup } =
     useGroupsStore();
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
@@ -75,9 +80,13 @@ export default function Groups() {
   const [isPublic, setIsPublic] = useState(false);
   const [code, setCode] = useState("");
 
-  useEffect(() => {
+  const load = () => {
     fetchGroups().catch(() => {});
     fetchPublicGroups().catch(() => {});
+  };
+
+  useEffect(() => {
+    load();
   }, [fetchGroups, fetchPublicGroups]);
 
   const handleCreate = async () => {
@@ -89,7 +98,7 @@ export default function Groups() {
       setActiveForm(null);
       setTab("groups");
     } catch (e) {
-      dialog.alert(e?.response?.data?.error || "No se pudo crear.", { title: "Error", tone: "danger" });
+      dialog.alert(e?.response?.data?.error || t("groups.createFailed"), { title: t("common.error"), tone: "danger" });
     }
   };
 
@@ -98,7 +107,7 @@ export default function Groups() {
       await joinPublicGroup(g.id);
       setTab("groups");
     } catch (e) {
-      dialog.alert(e?.response?.data?.error || "No se pudo unir.", { title: "Error", tone: "danger" });
+      dialog.alert(e?.response?.data?.error || t("groups.joinFailed"), { title: t("common.error"), tone: "danger" });
     }
   };
 
@@ -110,23 +119,26 @@ export default function Groups() {
       setActiveForm(null);
       setTab("groups");
     } catch (e) {
-      dialog.alert(e?.response?.data?.error || "Código inválido.", { title: "Error", tone: "danger" });
+      dialog.alert(e?.response?.data?.error || t("groups.invalidCode"), { title: t("common.error"), tone: "danger" });
     }
   };
+
+  const showSkeleton = loading && groups.length === 0;
+  const showError = error && groups.length === 0;
 
   return (
     <div>
       <header className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
           <Avatar name={user?.name} uri={user?.avatarUrl} size={32} />
-          <h1 className="text-xl font-bold text-primary">Polla Mundialista</h1>
+          <h1 className="text-xl font-bold text-primary">{t("common.appName")}</h1>
         </div>
         <Bell size={22} className="text-primary" />
       </header>
 
       <div className="px-4">
         <div className="flex border-b border-outline-variant">
-          {[["groups", "Mis Grupos"], ["actions", "Acciones"]].map(([k, label]) => (
+          {[["groups", t("groups.tabMine")], ["actions", t("groups.tabActions")]].map(([k, label]) => (
             <button
               key={k}
               onClick={() => setTab(k)}
@@ -139,8 +151,12 @@ export default function Groups() {
 
         <div className="pt-4">
           {tab === "groups" ? (
-            groups.length === 0 ? (
-              <p className="text-center text-on-surface-variant mt-10">Aún no perteneces a ningún grupo. Ve a Acciones.</p>
+            showError ? (
+              <ErrorState onRetry={load} />
+            ) : showSkeleton ? (
+              <Loader count={3} />
+            ) : groups.length === 0 ? (
+              <p className="text-center text-on-surface-variant mt-10">{t("groups.noGroups")}</p>
             ) : (
               groups.map((g) => <GroupCard key={g.id} group={g} onOpen={() => navigate(`/groups/${g.id}`)} />)
             )
@@ -150,40 +166,40 @@ export default function Groups() {
                 <div className="w-20 h-20 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mb-4">
                   <PlusCircle size={36} className="text-primary" />
                 </div>
-                <h2 className="text-2xl font-extrabold mb-2">Gestionar Grupos</h2>
+                <h2 className="text-2xl font-extrabold mb-2">{t("groups.manage")}</h2>
                 <p className="text-sm text-on-surface-variant text-center px-8">
-                  Crea tu propia liga privada o únete a la de tus amigos.
+                  {t("groups.manageSubtitle")}
                 </p>
               </div>
 
-              <ActionRow icon={UserPlus} title="Crear Grupo" subtitle="Define reglas y premios." tone="primary" onClick={() => setActiveForm(activeForm === "create" ? null : "create")} />
+              <ActionRow icon={UserPlus} title={t("groups.create")} subtitle={t("groups.createSubtitle")} tone="primary" onClick={() => setActiveForm(activeForm === "create" ? null : "create")} />
               {activeForm === "create" && (
                 <div className="glass-card rounded-xl p-4 mb-4">
                   <div className="flex gap-2">
-                    <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre del grupo" className="flex-1 h-11 px-3 rounded-lg bg-surface-container-lowest border border-outline-variant outline-none focus:border-primary" />
-                    <button onClick={handleCreate} className="px-4 rounded-lg bg-primary text-on-primary font-bold">Crear</button>
+                    <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("groups.groupNamePlaceholder")} className="flex-1 h-11 px-3 rounded-lg bg-surface-container-lowest border border-outline-variant outline-none focus:border-primary" />
+                    <button onClick={handleCreate} className="px-4 rounded-lg bg-primary text-on-primary font-bold">{t("groups.createBtn")}</button>
                   </div>
                   <label className="flex items-center gap-2 mt-3 text-sm text-on-surface-variant cursor-pointer">
                     <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} className="accent-[#00f2ff] w-4 h-4" />
-                    Grupo público (cualquiera puede unirse sin código)
+                    {t("groups.publicCheckbox")}
                   </label>
                 </div>
               )}
 
-              <ActionRow icon={KeyRound} title="Unirse con Código" subtitle="Ingresa el token de tu liga." tone="secondary" onClick={() => setActiveForm(activeForm === "join" ? null : "join")} />
+              <ActionRow icon={KeyRound} title={t("groups.joinByCode")} subtitle={t("groups.joinByCodeSubtitle")} tone="secondary" onClick={() => setActiveForm(activeForm === "join" ? null : "join")} />
               {activeForm === "join" && (
                 <div className="glass-card rounded-xl p-4 mb-4 flex gap-2">
-                  <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Código de invitación" className="flex-1 h-11 px-3 rounded-lg bg-surface-container-lowest border border-outline-variant outline-none focus:border-primary" />
-                  <button onClick={handleJoin} className="px-4 rounded-lg border border-primary text-primary font-bold">Unirme</button>
+                  <input value={code} onChange={(e) => setCode(e.target.value)} placeholder={t("groups.codePlaceholder")} className="flex-1 h-11 px-3 rounded-lg bg-surface-container-lowest border border-outline-variant outline-none focus:border-primary" />
+                  <button onClick={handleJoin} className="px-4 rounded-lg border border-primary text-primary font-bold">{t("groups.joinBtn")}</button>
                 </div>
               )}
 
               {/* Explorar grupos públicos */}
               <h3 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mt-6 mb-3">
-                Grupos públicos
+                {t("groups.publicGroups")}
               </h3>
               {publicGroups.length === 0 ? (
-                <p className="text-sm text-on-surface-variant">No hay grupos públicos por ahora.</p>
+                <p className="text-sm text-on-surface-variant">{t("groups.noPublicGroups")}</p>
               ) : (
                 publicGroups.map((g) => (
                   <div key={g.id} className="glass-card rounded-xl p-4 mb-3 flex items-center justify-between">
@@ -191,11 +207,11 @@ export default function Groups() {
                       <Avatar name={g.name} uri={g.imageUrl} size={40} />
                       <div className="min-w-0">
                         <p className="font-bold truncate">{g.name}</p>
-                        <p className="text-xs text-on-surface-variant">{g.memberCount} participantes</p>
+                        <p className="text-xs text-on-surface-variant">{t("groups.participants", { count: g.memberCount })}</p>
                       </div>
                     </div>
                     <button onClick={() => handleJoinPublic(g)} className="px-4 h-9 rounded-lg bg-primary text-on-primary font-bold text-sm shrink-0">
-                      Unirme
+                      {t("groups.joinBtn")}
                     </button>
                   </div>
                 ))

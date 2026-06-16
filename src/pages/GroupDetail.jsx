@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, Bell, Copy, Pencil, Crown, Medal, Calendar, X, ImagePlus } from "lucide-react";
 import Avatar from "../components/atoms/Avatar";
 import TeamBadge from "../components/atoms/TeamBadge";
@@ -42,6 +43,7 @@ function PodiumPlace({ place, row, onSelect }) {
 }
 
 function PredCard({ match, onSubmit }) {
+  const { t } = useTranslation();
   const finished = match.status === "finished";
   const closed = isMatchClosed(match);
   const [h, setH] = useState(match.prediction ? String(match.prediction.homeScore) : "");
@@ -52,13 +54,13 @@ function PredCard({ match, onSubmit }) {
   const outcome = finished ? predictionOutcome(match.prediction) : null;
 
   const save = async () => {
-    if (h === "" || a === "") return dialog.alert("Ingresa ambos marcadores.", { title: "Faltan datos" });
+    if (h === "" || a === "") return dialog.alert(t("groupDetail.missingScores"), { title: t("groupDetail.missingScoresTitle") });
     setSaving(true);
     try {
       await onSubmit(match.id, parseInt(h, 10), parseInt(a, 10));
-      dialog.alert("Tu pronóstico fue registrado.", { title: "¡Predicción guardada!", tone: "success" });
+      dialog.alert(t("groupDetail.predictionSaved"), { title: t("groupDetail.predictionSavedTitle"), tone: "success" });
     } catch (e) {
-      dialog.alert(e?.response?.data?.error || "No se pudo guardar.", { title: "Error", tone: "danger" });
+      dialog.alert(e?.response?.data?.error || t("groupDetail.saveFailed"), { title: t("common.error"), tone: "danger" });
     } finally {
       setSaving(false);
     }
@@ -68,7 +70,7 @@ function PredCard({ match, onSubmit }) {
     <div className="glass-card rounded-xl p-4 mb-3">
       <div className="flex justify-between items-center mb-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">
         <span className="flex items-center gap-1.5"><Calendar size={14} /> {formatMatchShort(match.matchDate)}</span>
-        {finished && match.prediction ? <span className="text-primary">+{match.prediction.points} pts</span> : finished ? <span>Final</span> : closed ? <span>Cerrado</span> : null}
+        {finished && match.prediction ? <span className="text-primary">+{match.prediction.points} {t("common.points")}</span> : finished ? <span>{t("groupDetail.final")}</span> : closed ? <span>{t("groupDetail.closed")}</span> : null}
       </div>
       <div className="flex items-center justify-between">
         <div className="flex-1 flex flex-col items-center gap-1.5">
@@ -81,7 +83,7 @@ function PredCard({ match, onSubmit }) {
               <span>{match.homeScore}</span><span className="text-on-surface-variant text-lg">-</span><span>{match.awayScore}</span>
             </div>
           ) : closed ? (
-            <span className="font-bold text-on-surface-variant">VS</span>
+            <span className="font-bold text-on-surface-variant">{t("common.vs")}</span>
           ) : (
             <div className="flex items-center gap-1">
               <input value={h} onChange={(e) => setH(e.target.value)} inputMode="numeric" maxLength={2} className="w-12 h-12 text-center font-extrabold text-primary bg-surface-container-high border border-primary/30 rounded-lg outline-none" />
