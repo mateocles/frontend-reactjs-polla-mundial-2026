@@ -299,7 +299,7 @@ export default function GroupDetail() {
               ))}
             </div>
             {predList.length === 0 ? (
-              <p className="text-center text-on-surface-variant mt-6">No hay partidos.</p>
+              <p className="text-center text-on-surface-variant mt-6">{t("groupDetail.noMatchesFilter")}</p>
             ) : predList.map((m) => <PredCard key={m.id} match={m} onSubmit={submitPrediction} />)}
           </div>
         )}
@@ -319,13 +319,14 @@ export default function GroupDetail() {
 
 // Modal: pronósticos de otro usuario (solo partidos ya iniciados/finalizados).
 function UserPredictionsModal({ user, groupId, onClose }) {
+  const { t } = useTranslation();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
     PredictionService.getUserPredictions(user.userId, groupId)
       .then(setData)
-      .catch((e) => setError(e?.response?.data?.error || "No se pudo cargar."));
+      .catch((e) => setError(e?.response?.data?.error || t("groupDetail.loadFailed")));
   }, [user.userId, groupId]);
 
   return (
@@ -336,18 +337,18 @@ function UserPredictionsModal({ user, groupId, onClose }) {
             <Avatar name={user.name} uri={user.avatarUrl} size={40} />
             <div className="min-w-0">
               <p className="font-bold truncate">{user.name}</p>
-              <p className="text-xs text-on-surface-variant">Pronósticos</p>
+              <p className="text-xs text-on-surface-variant">{t("groupDetail.predictions")}</p>
             </div>
           </div>
           <button onClick={onClose} className="shrink-0 ml-2"><X className="text-on-surface-variant" /></button>
         </div>
 
         {error && <p className="text-error text-sm">{error}</p>}
-        {!data && !error && <p className="text-on-surface-variant text-sm">Cargando…</p>}
+        {!data && !error && <p className="text-on-surface-variant text-sm">{t("common.loading")}</p>}
 
         {data?.matches?.filter((m) => m.prediction).length === 0 && (
           <p className="text-on-surface-variant text-sm text-center py-6">
-            Sin pronósticos en partidos cerrados.
+            {t("groupDetail.noClosedPredictions")}
           </p>
         )}
 
@@ -360,7 +361,7 @@ function UserPredictionsModal({ user, groupId, onClose }) {
               <div className="flex items-center justify-between text-xs text-on-surface-variant mb-2">
                 <span>{formatMatchShort(m.matchDate)}</span>
                 {m.prediction?.points != null && m.status === "finished" && (
-                  <span className="text-primary font-bold">+{m.prediction.points} pts</span>
+                  <span className="text-primary font-bold">+{m.prediction.points} {t("common.points")}</span>
                 )}
               </div>
               <div className="flex items-center justify-between">
@@ -370,8 +371,8 @@ function UserPredictionsModal({ user, groupId, onClose }) {
               </div>
               {m.status === "finished" && (
                 <div className="flex items-center justify-between text-[11px] mt-2 text-on-surface-variant">
-                  <span>Real: {m.homeScore} - {m.awayScore}</span>
-                  {outcome && <span className="font-bold uppercase">{outcome.label}</span>}
+                  <span>{t("groupDetail.real", { home: m.homeScore, away: m.awayScore })}</span>
+                  {outcome && <span className="font-bold uppercase">{t(outcome.key)}</span>}
                 </div>
               )}
             </div>
