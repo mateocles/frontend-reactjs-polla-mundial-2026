@@ -18,27 +18,101 @@ import { compressFileToBase64 } from "../utils/image";
 import { dialog } from "../store/useDialog";
 
 const OUTCOME_CLASS = { primary: "text-primary", secondary: "text-secondary", muted: "text-on-surface-variant" };
-const MEDAL = { 1: { ring: "#facc15", h: 128 }, 2: { ring: "#94a3b8", h: 96 }, 3: { ring: "#b45309", h: 80 } };
+const MEDAL = {
+  1: { ring: "#facc15", h: 132, avatar: 84, badge: "#facc15", rankClass: "text-[#facc15]" },
+  2: { ring: "#94a3b8", h: 96, avatar: 56, badge: "#94a3b8", rankClass: "text-on-surface-variant" },
+  3: { ring: "#b45309", h: 80, avatar: 56, badge: "#b45309", rankClass: "text-tertiary" },
+};
 
 function PodiumPlace({ place, row, onSelect }) {
   if (!row) return <div className="flex-1" />;
   const c = MEDAL[place];
+  const first = place === 1;
   return (
     <button
       onClick={() => onSelect?.(row)}
       className="flex-1 flex flex-col items-center active:scale-[0.98]"
-      style={{ maxWidth: place === 1 ? 120 : 100 }}
+      style={{ maxWidth: first ? 130 : 100 }}
     >
-      {place === 1 ? <Crown size={26} color="#facc15" fill="#facc15" /> : <Medal size={18} color={c.ring} />}
-      <div className="rounded-full mt-1" style={{ border: `${place === 1 ? 3 : 2}px solid ${c.ring}` }}>
-        <Avatar name={row.name} uri={row.avatarUrl} size={place === 1 ? 72 : 56} />
+      {/* Avatar con anillo y la insignia de puesto superpuesta arriba */}
+      <div className="relative" style={{ marginTop: first ? 14 : 6 }}>
+        <div
+          className="rounded-full"
+          style={{
+            border: `${first ? 4 : 2}px solid ${c.ring}`,
+            boxShadow: first
+              ? `0 0 22px 2px ${c.ring}80, 0 0 6px ${c.ring}`
+              : "none",
+          }}
+        >
+          <Avatar name={row.name} uri={row.avatarUrl} size={c.avatar} />
+        </div>
+        {/* Insignia circular con corona (#1) o número (#2/#3) */}
+        <div
+          className="absolute left-1/2 -translate-x-1/2 rounded-full flex items-center justify-center"
+          style={{
+            top: first ? -16 : -10,
+            width: first ? 32 : 22,
+            height: first ? 32 : 22,
+            backgroundColor: c.badge,
+            boxShadow: first ? `0 0 12px ${c.ring}` : "none",
+            border: "2px solid var(--background)",
+          }}
+        >
+          {first ? (
+            <Crown size={18} color="#1a1300" fill="#1a1300" />
+          ) : (
+            <span className="text-[11px] font-extrabold text-background">{place}</span>
+          )}
+        </div>
       </div>
-      <span className={`text-xs font-bold text-center mt-1 ${place === 1 ? "text-primary" : ""}`}>{row.name}</span>
-      <span className="text-xs font-bold text-primary">{row.totalPoints} pts</span>
-      <div className={`w-full rounded-t-lg mt-2 flex items-end justify-center pb-2 ${place === 1 ? "bg-primary/20" : "bg-surface-container-high"}`} style={{ height: c.h }}>
-        <span className={`font-bold text-lg ${place === 1 ? "text-primary" : "text-on-surface-variant"}`}>#{place}</span>
+      <span className={`text-xs font-bold text-center mt-2 ${first ? "text-secondary" : ""}`}>{row.name}</span>
+      <span className="text-xs font-bold text-secondary">{row.totalPoints} pts</span>
+      <div
+        className={`w-full rounded-t-lg mt-2 flex items-end justify-center pb-2 ${first ? "bg-primary/20 border-x border-t border-[#facc15]/30" : "bg-surface-container-high"}`}
+        style={{ height: c.h }}
+      >
+        <span className={`font-extrabold text-lg ${c.rankClass}`}>#{place}</span>
       </div>
     </button>
+  );
+}
+
+// Skeleton del detalle de grupo mientras llega la información.
+function GroupDetailSkeleton() {
+  return (
+    <div className="px-4 animate-pulse" aria-hidden="true">
+      <div className="h-44 rounded-xl mt-2 mb-5 bg-surface-container-high" />
+      <div className="flex border-b border-white/5">
+        <div className="flex-1 py-3 flex justify-center"><div className="h-4 w-20 rounded bg-surface-container-high" /></div>
+        <div className="flex-1 py-3 flex justify-center"><div className="h-4 w-20 rounded bg-surface-container-high" /></div>
+      </div>
+      <div className="mt-6">
+        <div className="h-6 w-40 rounded bg-surface-container-high mb-4" />
+        {/* Podio fantasma */}
+        <div className="flex items-end justify-center gap-2 pt-4">
+          {[{ a: 56, h: 96 }, { a: 84, h: 132 }, { a: 56, h: 80 }].map((s, i) => (
+            <div key={i} className="flex-1 flex flex-col items-center" style={{ maxWidth: i === 1 ? 130 : 100 }}>
+              <div className="rounded-full bg-surface-container-high" style={{ width: s.a, height: s.a }} />
+              <div className="h-3 w-14 rounded bg-surface-container-high mt-2" />
+              <div className="h-3 w-10 rounded bg-surface-container-high mt-1.5" />
+              <div className="w-full rounded-t-lg mt-2 bg-surface-container-high" style={{ height: s.h }} />
+            </div>
+          ))}
+        </div>
+        {/* Filas fantasma */}
+        <div className="mt-6">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center p-4 rounded-xl mb-2 bg-surface-container-high">
+              <div className="w-6 h-4 rounded bg-surface-container-highest" />
+              <div className="mx-3 w-10 h-10 rounded-full bg-surface-container-highest" />
+              <div className="flex-1 h-4 rounded bg-surface-container-highest" />
+              <div className="w-12 h-4 rounded bg-surface-container-highest ml-3" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -176,6 +250,7 @@ export default function GroupDetail() {
   const { groups, fetchGroups, updateGroup } = useGroupsStore();
 
   const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("ranking");
   const [predFilter, setPredFilter] = useState("upcoming");
   const [editing, setEditing] = useState(false);
@@ -187,7 +262,11 @@ export default function GroupDetail() {
   useEffect(() => {
     if (!groups.length) fetchGroups().catch(() => {});
     fetchMatches().catch(() => {});
-    PredictionService.getLeaderboard(groupId).then(setRows).catch(() => {});
+    setLoading(true);
+    PredictionService.getLeaderboard(groupId)
+      .then(setRows)
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [groupId]);
 
   const ownerName = rows.find((r) => r.userId === group.ownerId)?.name;
@@ -216,6 +295,7 @@ export default function GroupDetail() {
         <Bell size={22} className="text-primary" />
       </header>
 
+      {loading && rows.length === 0 ? <GroupDetailSkeleton /> : (
       <div className="px-4">
         {/* Banner con código de invitación inmerso */}
         <div className="relative h-44 rounded-xl overflow-hidden mt-2 mb-5">
@@ -304,6 +384,7 @@ export default function GroupDetail() {
           </div>
         )}
       </div>
+      )}
 
       {editing && <EditModal group={group} onClose={() => setEditing(false)} onSave={onSave} />}
       {viewUser && (
