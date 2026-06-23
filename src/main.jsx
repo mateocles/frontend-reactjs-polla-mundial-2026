@@ -10,6 +10,8 @@ import DialogHost from "./components/DialogHost";
 import AppLayout from "./layout/AppLayout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Matches from "./pages/Matches";
 import Groups from "./pages/Groups";
 import GroupDetail from "./pages/GroupDetail";
@@ -38,6 +40,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Routes>
         <Route path="/login" element={<PublicOnly><Login /></PublicOnly>} />
         <Route path="/register" element={<PublicOnly><Register /></PublicOnly>} />
+        {/* Públicas siempre: el enlace del correo debe abrir aunque haya sesión. */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route
           element={

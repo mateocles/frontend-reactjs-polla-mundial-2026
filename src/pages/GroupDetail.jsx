@@ -435,7 +435,10 @@ function UserPredictionsModal({ user, groupId, onClose }) {
 
         {/* Lista con scroll interno (≈3 pronósticos visibles) */}
         <div className="overflow-y-auto pr-1" style={{ maxHeight: "340px" }}>
-        {data?.matches?.filter((m) => m.prediction).map((m) => {
+        {data?.matches
+          ?.filter((m) => m.prediction)
+          .sort((a, b) => new Date(b.matchDate) - new Date(a.matchDate))
+          .map((m) => {
           const outcome = m.status === "finished" ? predictionOutcome(m.prediction) : null;
           return (
             <div key={m.id} className="glass-card rounded-xl p-3 mb-2">

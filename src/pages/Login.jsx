@@ -67,6 +67,7 @@ export default function Login() {
 
         <div className="flex justify-between items-center mt-4 mb-1.5">
           <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">{t("auth.password")}</label>
+          <Link to="/forgot-password" className="text-xs font-bold text-primary">{t("auth.forgotPassword")}</Link>
         </div>
         <Field icon={Lock} secure value={password} onChange={setPassword} placeholder="••••••••" />
 
