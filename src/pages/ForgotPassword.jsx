@@ -17,7 +17,7 @@ export default function ForgotPassword() {
     setLoading(true);
     setError("");
     try {
-      await AuthService.forgotPassword(email.trim());
+      await AuthService.forgotPassword(email.trim().toLowerCase());
       setSent(true);
     } catch (err) {
       setError(err?.response?.data?.error || t("auth.genericError"));
@@ -51,6 +51,10 @@ export default function ForgotPassword() {
             <input
               className="flex-1 bg-transparent outline-none text-on-surface placeholder:text-outline-variant"
               type="email"
+              inputMode="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t("auth.emailPlaceholder")}

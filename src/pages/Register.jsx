@@ -47,7 +47,7 @@ export default function Register() {
     setLoading(true);
     setError("");
     try {
-      await register(name.trim(), email.trim(), password);
+      await register(name.trim(), email.trim().toLowerCase(), password);
       navigate("/matches");
     } catch (err) {
       setError(err?.response?.data?.error || t("auth.registerFailed"));
@@ -72,7 +72,7 @@ export default function Register() {
 
       <form onSubmit={submit}>
         <Field icon={User} label={t("auth.fullName")} value={form.name} onChange={set("name")} placeholder={t("auth.fullNamePlaceholder")} />
-        <Field icon={Mail} label={t("auth.emailLabel")} value={form.email} onChange={set("email")} placeholder={t("auth.emailPlaceholder")} />
+        <Field icon={Mail} label={t("auth.emailLabel")} value={form.email} onChange={set("email")} placeholder={t("auth.emailPlaceholder")} type="email" inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} />
         <Field icon={Lock} label={t("auth.password")} secure value={form.password} onChange={set("password")} placeholder="••••••••" />
         <Field icon={Lock} label={t("auth.confirmPassword")} secure value={form.confirm} onChange={set("confirm")} placeholder="••••••••" />
 

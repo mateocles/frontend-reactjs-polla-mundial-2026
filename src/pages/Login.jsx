@@ -40,7 +40,7 @@ export default function Login() {
     setLoading(true);
     setError("");
     try {
-      await login(email.trim(), password);
+      await login(email.trim().toLowerCase(), password);
       navigate("/matches");
     } catch (err) {
       setError(err?.response?.data?.error || t("auth.loginFailed"));
@@ -62,7 +62,7 @@ export default function Login() {
       <form onSubmit={submit} className="w-full glass-card rounded-xl p-6">
         <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">{t("auth.email")}</label>
         <div className="mt-1.5">
-          <Field icon={Mail} value={email} onChange={setEmail} placeholder={t("auth.emailPlaceholder")} />
+          <Field icon={Mail} value={email} onChange={setEmail} placeholder={t("auth.emailPlaceholder")} type="email" inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} />
         </div>
 
         <div className="flex justify-between items-center mt-4 mb-1.5">
